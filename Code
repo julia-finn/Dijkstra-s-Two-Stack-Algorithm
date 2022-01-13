@@ -1,0 +1,73 @@
+import edu.princeton.cs.algs4.StdIn;
+
+// file: EvaluateInfix.java
+// author: Bob Muller based on Sedgewick & Wayne's implementation of
+//         Dijkstra's Two-stack Algorithm.
+//
+// This program implements a simple calculator for arithmetic expressions
+// that may or may not include explicit parenthesis. It uses the algs4
+// library function StdIn.readString.
+//
+// NOTE: the input string must be enclosed in parentheses and each item
+// must have spaces. Eg. "( 2 + 3 * 4 )" is OK but neither "2 + 3 * 4"
+// nor "(2+3*4)" are OK.
+//
+// This code demonstrates the use of generic stacks.
+//
+public class EvaluateInfix {
+
+  private static double precedence(String operator) {
+    if (operator.equals("+")) return 1;
+    else if (operator.equals("-")) return 1;
+    else if (operator.equals("*")) return 2;
+    else if (operator.equals("/")) return 2;
+    else if (operator.equals("^")) return 3;
+    else return 0;
+  }
+
+  private static double applyOperator(double num1, double num2, String operator) {
+    if (operator.equals("+")) return (num1 + num2);
+    else if (operator.equals("-")) return (num1 - num2);
+    else if (operator.equals("*")) return (num1 * num2);
+    else if (operator.equals("/")) return (num1 / num2);
+    else return Math.pow(num1, num2);
+  }
+
+  public static void main(String[] args) {
+    Stack<String> operatorStack = new ResizingArrayStack<String>();
+    Stack<Double> valueStack = new ResizingArrayStack<Double>();
+    System.out.format("Please enter an expression followed by ctrl-d.");
+
+    while (!StdIn.isEmpty()) {
+      String token = StdIn.readString();
+      if (token.equals("(")) operatorStack.push(token);
+
+      else if (token.equals(")")) {
+        while (!operatorStack.peek().equals("(")) {
+          String operator = operatorStack.pop();
+          double num1 = valueStack.pop();
+          double num2 = valueStack.pop();
+          double result = applyOperator(num2, num1, operator);
+          valueStack.push(result);
+        }
+        operatorStack.pop();
+      }
+
+      else if (token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/")
+              || token.equals("^")) {
+        while ((!operatorStack.isEmpty()) && (precedence(operatorStack.peek()) >= precedence(
+                token))) {
+          String operator = operatorStack.pop();
+          double num1 = valueStack.pop();
+          double num2 = valueStack.pop();
+          double result = applyOperator(num2, num1, operator);
+          valueStack.push(result);
+        }
+        operatorStack.push(token);
+      }
+
+      else valueStack.push(Double.parseDouble(token));
+    }
+    System.out.format("The answer is: %s\n", valueStack.pop());
+  }
+}
